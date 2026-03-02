@@ -33,8 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,8 +53,6 @@ private fun WeatherLinkScreen() {
     val periods = listOf("3", "5", "7", "14")
     var selectedPeriod by rememberSaveable { mutableStateOf(periods[0]) }
 
-    val providers = listOf("Gismeteo", "Яндекс Погода")
-    var selectedProvider by rememberSaveable { mutableStateOf(providers[0]) }
 
     Column(
         modifier = Modifier
@@ -92,15 +88,6 @@ private fun WeatherLinkScreen() {
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        Text("Сайт прогноза")
-        providers.forEach { provider ->
-            OptionRow(
-                text = provider,
-                selected = selectedProvider == provider,
-                onClick = { selectedProvider = provider }
-            )
-        }
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -113,8 +100,7 @@ private fun WeatherLinkScreen() {
 
                 val link = buildWeatherUrl(
                     city = city.trim(),
-                    periodDays = selectedPeriod,
-                    provider = selectedProvider
+                    periodDays = selectedPeriod
                 )
 
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link)).apply {
@@ -122,7 +108,6 @@ private fun WeatherLinkScreen() {
                 }
 
                 try {
-                    // Chooser показывает все подходящие браузеры даже если приложение по умолчанию не выбрано.
                     context.startActivity(Intent.createChooser(intent, "Открыть прогноз через"))
                 } catch (_: ActivityNotFoundException) {
                     Toast.makeText(context, "На устройстве не найден браузер", Toast.LENGTH_SHORT).show()
@@ -152,21 +137,11 @@ private fun OptionRow(
     }
 }
 
-private fun buildWeatherUrl(city: String, periodDays: String, provider: String): String {
-    val query = URLEncoder.encode("$city $periodDays дней", StandardCharsets.UTF_8.toString())
-
-    return when (provider) {
-        "Яндекс Погода" -> {
-            val citySlug = toYandexCitySlug(city)
-            val periodPath = toYandexPeriodPath(periodDays)
-            "https://yandex.ru/pogoda/ru/$citySlug/details/$periodPath"
-        }
-
-        else -> toGismeteoUrl(city, periodDays, query)
-    }
+private fun buildWeatherUrl(city: String, periodDays: String): String {
+    val citySlug = toYandexCitySlug(city)
+    val periodPath = toYandexPeriodPath(periodDays)
+    return "https://yandex.ru/pogoda/ru/$citySlug/details/$periodPath"
 }
-
-
 
 private fun toYandexPeriodPath(periodDays: String): String {
     return when (periodDays) {
@@ -178,38 +153,6 @@ private fun toYandexPeriodPath(periodDays: String): String {
     }
 }
 
-private fun toGismeteoUrl(city: String, periodDays: String, query: String): String {
-    val key = city.trim().lowercase()
-
-    val directCityPages = mapOf(
-        "москва" to "weather-moscow-4368",
-        "moscow" to "weather-moscow-4368",
-        "санкт-петербург" to "weather-saint-petersburg-4079",
-        "санкт петербург" to "weather-saint-petersburg-4079",
-        "saint petersburg" to "weather-saint-petersburg-4079",
-        "питер" to "weather-saint-petersburg-4079",
-        "екатеринбург" to "weather-yekaterinburg-4517",
-        "новосибирск" to "weather-novosibirsk-4690",
-        "казань" to "weather-kazan-4364"
-    )
-
-    val path = directCityPages[key]
-    return if (path != null) {
-        val periodPath = toGismeteoPeriodPath(periodDays)
-        "https://www.gismeteo.ru/$path/$periodPath"
-    } else {
-        "https://www.gismeteo.ru/search/?q=$query"
-    }
-}
-
-private fun toGismeteoPeriodPath(periodDays: String): String {
-    return when (periodDays) {
-        "3" -> "3-days/"
-        "14" -> "2-weeks/"
-        "5", "7" -> "10-days/"
-        else -> "10-days/"
-    }
-}
 private fun toYandexCitySlug(city: String): String {
     val translit = mapOf(
         'а' to "a", 'б' to "b", 'в' to "v", 'г' to "g", 'д' to "d", 'е' to "e", 'ё' to "e",
