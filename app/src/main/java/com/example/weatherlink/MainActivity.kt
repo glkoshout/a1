@@ -121,14 +121,9 @@ private fun WeatherLinkScreen() {
                     addCategory(Intent.CATEGORY_BROWSABLE)
                 }
 
-                val canOpen = intent.resolveActivity(context.packageManager) != null
-                if (!canOpen) {
-                    Toast.makeText(context, "На устройстве не найден браузер", Toast.LENGTH_SHORT).show()
-                    return@Button
-                }
-
                 try {
-                    context.startActivity(intent)
+                    // Chooser показывает все подходящие браузеры даже если приложение по умолчанию не выбрано.
+                    context.startActivity(Intent.createChooser(intent, "Открыть прогноз через"))
                 } catch (_: ActivityNotFoundException) {
                     Toast.makeText(context, "На устройстве не найден браузер", Toast.LENGTH_SHORT).show()
                 } catch (_: Exception) {
