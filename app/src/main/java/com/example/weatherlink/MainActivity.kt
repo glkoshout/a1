@@ -117,12 +117,22 @@ private fun WeatherLinkScreen() {
                     provider = selectedProvider
                 )
 
-                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link)).apply {
+                    addCategory(Intent.CATEGORY_BROWSABLE)
+                }
+
+                val canOpen = intent.resolveActivity(context.packageManager) != null
+                if (!canOpen) {
+                    Toast.makeText(context, "На устройстве не найден браузер", Toast.LENGTH_SHORT).show()
+                    return@Button
+                }
+
                 try {
-                    context.startActivity(Intent.createChooser(intent, "Открыть прогноз через"))
+                    context.startActivity(intent)
                 } catch (_: ActivityNotFoundException) {
-                    Toast.makeText(context, "На устройстве не найден браузер", Toast.LENGTH_SHORT)
-                        .show()
+                    Toast.makeText(context, "На устройстве не найден браузер", Toast.LENGTH_SHORT).show()
+                } catch (_: Exception) {
+                    Toast.makeText(context, "Не удалось открыть браузер", Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = Modifier.fillMaxWidth()
@@ -148,10 +158,10 @@ private fun OptionRow(
 }
 
 private fun buildWeatherUrl(city: String, periodDays: String, provider: String): String {
-    val query = URLEncoder.encode("погода $city на $periodDays дней", StandardCharsets.UTF_8.toString())
+    val query = URLEncoder.encode("$city $periodDays дней", StandardCharsets.UTF_8.toString())
 
     return when (provider) {
-        "Яндекс Погода" -> "https://yandex.ru/pogoda/search?request=$query"
+        "Яндекс Погода" -> "https://m.yandex.ru/pogoda/search?request=$query"
         else -> "https://www.gismeteo.ru/search/?q=$query"
     }
 }
