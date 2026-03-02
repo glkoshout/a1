@@ -52,8 +52,8 @@ private fun WeatherLinkScreen() {
     val context = LocalContext.current
     var city by rememberSaveable { mutableStateOf("") }
 
-    val periods = listOf("1", "3", "5", "7", "10", "14")
-    var selectedPeriod by rememberSaveable { mutableStateOf(periods[1]) }
+    val periods = listOf("3", "5", "7", "14")
+    var selectedPeriod by rememberSaveable { mutableStateOf(periods[0]) }
 
     val providers = listOf("Gismeteo", "Яндекс Погода")
     var selectedProvider by rememberSaveable { mutableStateOf(providers[0]) }
@@ -158,13 +158,48 @@ private fun buildWeatherUrl(city: String, periodDays: String, provider: String):
     return when (provider) {
         "Яндекс Погода" -> {
             val citySlug = toYandexCitySlug(city)
-            "https://yandex.ru/pogoda/ru/$citySlug"
+            val periodPath = toYandexPeriodPath(periodDays)
+            "https://yandex.ru/pogoda/ru/$citySlug/details/$periodPath"
         }
 
-        else -> "https://www.gismeteo.ru/search/?q=$query"
+        else -> toGismeteoUrl(city, query)
     }
 }
 
+
+
+private fun toYandexPeriodPath(periodDays: String): String {
+    return when (periodDays) {
+        "3" -> "3-day-weather"
+        "5" -> "5-day-weather"
+        "7" -> "7-day-weather"
+        "14" -> "14-day-weather"
+        else -> "7-day-weather"
+    }
+}
+
+private fun toGismeteoUrl(city: String, query: String): String {
+    val key = city.trim().lowercase()
+
+    val directCityPages = mapOf(
+        "москва" to "weather-moscow-4368/",
+        "moscow" to "weather-moscow-4368/",
+        "санкт-петербург" to "weather-saint-petersburg-4079/",
+        "санкт петербург" to "weather-saint-petersburg-4079/",
+        "saint petersburg" to "weather-saint-petersburg-4079/",
+        "питер" to "weather-saint-petersburg-4079/",
+        "екатеринбург" to "weather-yekaterinburg-4517/",
+        "новосибирск" to "weather-novosibirsk-4690/",
+        "казань" to "weather-kazan-4364/"
+    )
+
+    val path = directCityPages[key]
+    return if (path != null) {
+        "https://www.gismeteo.ru/$path"
+    } else {
+        "https://www.gismeteo.ru/search/?q=$query"
+    }
+}
 private fun toYandexCitySlug(city: String): String {
     val translit = mapOf(
         'а' to "a", 'б' to "b", 'в' to "v", 'г' to "g", 'д' to "d", 'е' to "e", 'ё' to "e",
