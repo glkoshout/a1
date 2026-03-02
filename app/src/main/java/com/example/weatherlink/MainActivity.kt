@@ -162,7 +162,7 @@ private fun buildWeatherUrl(city: String, periodDays: String, provider: String):
             "https://yandex.ru/pogoda/ru/$citySlug/details/$periodPath"
         }
 
-        else -> toGismeteoUrl(city, query)
+        else -> toGismeteoUrl(city, periodDays, query)
     }
 }
 
@@ -178,26 +178,36 @@ private fun toYandexPeriodPath(periodDays: String): String {
     }
 }
 
-private fun toGismeteoUrl(city: String, query: String): String {
+private fun toGismeteoUrl(city: String, periodDays: String, query: String): String {
     val key = city.trim().lowercase()
 
     val directCityPages = mapOf(
-        "москва" to "weather-moscow-4368/",
-        "moscow" to "weather-moscow-4368/",
-        "санкт-петербург" to "weather-saint-petersburg-4079/",
-        "санкт петербург" to "weather-saint-petersburg-4079/",
-        "saint petersburg" to "weather-saint-petersburg-4079/",
-        "питер" to "weather-saint-petersburg-4079/",
-        "екатеринбург" to "weather-yekaterinburg-4517/",
-        "новосибирск" to "weather-novosibirsk-4690/",
-        "казань" to "weather-kazan-4364/"
+        "москва" to "weather-moscow-4368",
+        "moscow" to "weather-moscow-4368",
+        "санкт-петербург" to "weather-saint-petersburg-4079",
+        "санкт петербург" to "weather-saint-petersburg-4079",
+        "saint petersburg" to "weather-saint-petersburg-4079",
+        "питер" to "weather-saint-petersburg-4079",
+        "екатеринбург" to "weather-yekaterinburg-4517",
+        "новосибирск" to "weather-novosibirsk-4690",
+        "казань" to "weather-kazan-4364"
     )
 
     val path = directCityPages[key]
     return if (path != null) {
-        "https://www.gismeteo.ru/$path"
+        val periodPath = toGismeteoPeriodPath(periodDays)
+        "https://www.gismeteo.ru/$path/$periodPath"
     } else {
         "https://www.gismeteo.ru/search/?q=$query"
+    }
+}
+
+private fun toGismeteoPeriodPath(periodDays: String): String {
+    return when (periodDays) {
+        "3" -> "3-days/"
+        "14" -> "2-weeks/"
+        "5", "7" -> "10-days/"
+        else -> "10-days/"
     }
 }
 private fun toYandexCitySlug(city: String): String {
