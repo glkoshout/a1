@@ -29,19 +29,3 @@ gradle wrapper --gradle-version 8.7
 ```
 
 
-## Частая ошибка при сборке
-
-Если видите ошибку:
-
-`resource style/Theme.Material3.DayNight.NoActionBar not found`
-
-это означает, что в теме использован стиль, которого нет в подключенных зависимостях Material3.
-В проекте уже используется совместимый родитель темы: `Theme.Material3.DayNight`.
-После обновления файлов сделайте:
-
-1. **File → Sync Project with Gradle Files**
-2. **Build → Clean Project**
-3. **Build → Rebuild Project**
-
-После успешной сборки приложение появится на выбранном эмуляторе/устройстве, а не на рабочем столе ПК.
-
