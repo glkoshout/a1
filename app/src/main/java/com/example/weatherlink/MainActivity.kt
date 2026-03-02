@@ -148,15 +148,10 @@ private fun OptionRow(
 }
 
 private fun buildWeatherUrl(city: String, periodDays: String, provider: String): String {
-    return when (provider) {
-        "Яндекс Погода" -> {
-            val query = URLEncoder.encode("погода $city на $periodDays дней", StandardCharsets.UTF_8.toString())
-            "https://yandex.ru/search/?text=$query"
-        }
+    val query = URLEncoder.encode("погода $city на $periodDays дней", StandardCharsets.UTF_8.toString())
 
-        else -> {
-            val query = URLEncoder.encode("gismeteo $city прогноз на $periodDays дней", StandardCharsets.UTF_8.toString())
-            "https://www.google.com/search?q=$query&hl=ru"
-        }
+    return when (provider) {
+        "Яндекс Погода" -> "https://yandex.ru/pogoda/search?request=$query"
+        else -> "https://www.gismeteo.ru/search/?q=$query"
     }
 }
