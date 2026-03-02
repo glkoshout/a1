@@ -156,7 +156,38 @@ private fun buildWeatherUrl(city: String, periodDays: String, provider: String):
     val query = URLEncoder.encode("$city $periodDays дней", StandardCharsets.UTF_8.toString())
 
     return when (provider) {
-        "Яндекс Погода" -> "https://m.yandex.ru/pogoda/search?request=$query"
+        "Яндекс Погода" -> {
+            val citySlug = toYandexCitySlug(city)
+            "https://yandex.ru/pogoda/ru/$citySlug"
+        }
+
         else -> "https://www.gismeteo.ru/search/?q=$query"
     }
+}
+
+private fun toYandexCitySlug(city: String): String {
+    val translit = mapOf(
+        'а' to "a", 'б' to "b", 'в' to "v", 'г' to "g", 'д' to "d", 'е' to "e", 'ё' to "e",
+        'ж' to "zh", 'з' to "z", 'и' to "i", 'й' to "y", 'к' to "k", 'л' to "l", 'м' to "m",
+        'н' to "n", 'о' to "o", 'п' to "p", 'р' to "r", 'с' to "s", 'т' to "t", 'у' to "u",
+        'ф' to "f", 'х' to "h", 'ц' to "ts", 'ч' to "ch", 'ш' to "sh", 'щ' to "sch",
+        'ъ' to "", 'ы' to "y", 'ь' to "", 'э' to "e", 'ю' to "yu", 'я' to "ya"
+    )
+
+    val raw = city.trim().lowercase()
+    val slugBuilder = StringBuilder()
+
+    raw.forEach { ch ->
+        when {
+            ch in translit -> slugBuilder.append(translit[ch])
+            ch.isLetterOrDigit() -> slugBuilder.append(ch)
+            ch == ' ' || ch == '-' || ch == '_' -> slugBuilder.append('-')
+        }
+    }
+
+    return slugBuilder
+        .toString()
+        .replace(Regex("-+"), "-")
+        .trim('-')
+        .ifBlank { "moscow" }
 }
